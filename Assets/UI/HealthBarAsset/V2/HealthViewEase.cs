@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,30 +8,26 @@ public class HealthViewEase : HealthView
     [SerializeField] private Slider _easeSlider;
 
     [SerializeField] private float _decreasingTime = 0.2f;
-    [SerializeField] private float _decreasingSteps = 100f;
-    [SerializeField] private float _decreasingLerpSpeed = 5f;
+    [SerializeField] private float _decreasingLerpSpeed = 100f;
 
     private WaitForSeconds _waitDecrease;
-    private Coroutine _easeDecreasing;
-    private float _decreaseStep;
+    private Coroutine _coroutine;
 
     private void Awake()
     {
         _hardSlider.maxValue = MaxHealth;
         _easeSlider.maxValue = MaxHealth;
         _waitDecrease = new WaitForSeconds(_decreasingTime);
-        _decreaseStep = MaxHealth / _decreasingSteps;
     }
 
     private IEnumerator EaseDecreasing(float targetValue)
     {
         while (_easeSlider.value != targetValue)
         {
-            // _easeSlider.value = Mathf.MoveTowards(_easeSlider.value, targetValue, _decreaseStep);
             _easeSlider.value = Mathf.Lerp(
                 _easeSlider.value,
                 targetValue,
-                _decreasingLerpSpeed * Time.deltaTime);
+                _decreasingLerpSpeed * Time.deltaTime); 
             yield return _waitDecrease;
         }
     }
@@ -41,9 +35,16 @@ public class HealthViewEase : HealthView
     public override void UpdateHealth(float targetValue)
     {
         if (targetValue >= _hardSlider.value)
-            _easeSlider.value = targetValue;
+        {
+            _easeSlider.value = targetValue;   
+        }
         else
-            _easeDecreasing = StartCoroutine(EaseDecreasing(targetValue));
+        {
+            if (_coroutine != null)
+                StopCoroutine(_coroutine);
+            
+            _coroutine = StartCoroutine(EaseDecreasing(targetValue));   
+        }
         
         _hardSlider.value = targetValue;
     }
